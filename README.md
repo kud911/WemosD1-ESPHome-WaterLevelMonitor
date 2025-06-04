@@ -32,8 +32,8 @@ L'objectif est de :
 | ⚡ MCP1700-3302E + condensateurs | Régulateur 3,3 V + condensateurs céramiques pour alimentation du Wemos       |
 | ⚡ MT3608                        | Convertisseur boost pour élever la tension à 5 V pour le capteur AJ-SR04M      |
 | 🔌 Résistances / diviseur        | Pour mesurer la tension batterie via la broche A0                             |
-| 🧰 Fils + breadboard             | Pour câbler les composants (à souder ou sur breadboard)                        |
-| 🛠️ Logiciel                     | ESPHome, Home Assistant, broker MQTT                                          |
+| 🧰 Fils + PCB                    | Pour câbler les composants (à souder ou sur breadboard)                        |
+| 🛠️ Logiciel                      | ESPHome, Home Assistant, broker MQTT                                          |
 
 ---
 
