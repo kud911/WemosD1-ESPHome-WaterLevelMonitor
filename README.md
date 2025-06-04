@@ -2,7 +2,9 @@
 
 Ce projet utilise un microcontrôleur Wemos D1 Mini avec ESPHome pour mesurer le niveau d'eau dans une cuve à l'aide d'un capteur à ultrasons, puis publier les données via MQTT vers Home Assistant.
 
-![Photo du boîtier](images/boitier_1.jpg)  
+![Photo du boîtier](images/boitier_2.jpg)  
+![Photo dans la citerne](images/citerne_1.jpg)  
+
 ---
 
 ## 🧠 Objectif
@@ -14,7 +16,7 @@ L'objectif est de :
 - envoyer toutes ces données vers un serveur MQTT,  
 - économiser l’énergie grâce au mode **deep sleep** (une mesure toutes les 15 minutes).
 
-![Photo du boîtier](images/boitier_2.jpg)  
+![Photo du boîtier](images/boitier_1.jpg)  
 
 ---
 
