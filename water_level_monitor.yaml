@@ -1,0 +1,227 @@
+esphome:
+  name: water_level_sensor
+  on_boot:
+    priority: -100.0
+    then:
+      - lambda: 'ESP_LOGI("BOOT", "Système démarré et en cours de mesure.");'
+      - wifi.enable
+      - logger.log: Powering ultrasonic sensor...
+      - output.turn_on: power_hcsr04
+      - wait_until:
+          condition:
+            wifi.connected
+          timeout: 15s
+      - if:
+          condition:
+            wifi.connected
+          then:
+            - logger.log: WiFi is connected!
+            - wait_until:
+                condition:
+                  mqtt.connected
+                timeout: 5s
+            - if:
+                condition:
+                  mqtt.connected:
+                then:
+                  - logger.log: MQTT is connected! Publishing status...
+                  - mqtt.publish:
+                      topic: water_level_sensor/status
+                      payload: online
+                      retain: true
+                  - delay: 2s
+                  - logger.log: Measuring water level...
+                  - script.execute: 
+                      id: do_measurements
+                      wait: true
+                  - delay: 2s
+                  - logger.log: Measuring battery...
+                  - script.execute: 
+                      id: do_battery
+                      wait: true
+                  - delay: 500ms
+                  - logger.log: Turning off ultrasonic sensor...
+                  - output.turn_off: power_hcsr04
+                  - script.execute: show_time_executed
+                  - delay: 1500ms
+                  - wifi.disable            
+                  - logger.log: "Wi-Fi désactivé, passage en deep sleep"
+                  - deep_sleep.enter: ds_control
+                else:
+                  - logger.log: "MQTT non connecté après attente, deep sleep forcé"
+                  - output.turn_off: power_hcsr04
+                  - wifi.disable
+                  - deep_sleep.enter: ds_control
+          else:
+            - logger.log: "Wi-Fi non connecté après attente, deep sleep forcé"
+            - output.turn_off: power_hcsr04
+            - wifi.disable
+            - deep_sleep.enter: ds_control
+
+esp8266:
+  board: d1_mini
+
+wifi:
+  ssid: "${wifi_ssid}"
+  password: "${wifi_password}"
+  manual_ip:
+    static_ip: ${static_ip}
+    gateway: ${gateway_ip}
+    subnet: ${subnet_mask}
+  fast_connect: false #true
+  power_save_mode: LIGHT #HIGH
+  reboot_timeout: 0s
+  enable_on_boot: false
+
+mqtt:
+  broker: ${mqtt_host}
+  username: "${mqtt_user}"
+  password: "${mqtt_password}"
+  discovery: true
+  keepalive: 60s
+  discovery_retain: true
+  will_message:
+  birth_message:
+    topic: water_level_sensor/status
+    payload: online
+
+logger:
+
+ota:
+  platform: esphome
+
+output:
+  - platform: gpio
+    pin: D5
+    id: power_hcsr04
+
+sensor:
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    id: niveau_eau
+    update_interval: never
+    force_update: true
+    internal: true
+    pulse_time: 20us
+    timeout: 5.0m
+    filters:
+      - filter_out: nan
+
+  - platform: template
+    name: "Distance eau"
+    id: niveau_eau_pub
+    unit_of_measurement: "m"
+    accuracy_decimals: 2
+    update_interval: never
+    force_update: true
+    retain: true 
+    expire_after: 12h
+
+  - platform: template
+    name: "Niveau d'eau"
+    id: pct_eau_pub
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    update_interval: never
+    force_update: true
+    retain: true 
+    expire_after: 12h
+
+  - platform: adc
+    pin: A0
+    id: tension_batterie
+    name: "Tension Batterie"
+    update_interval: never
+    unit_of_measurement: "V"
+    #internal: true
+    force_update: true
+    retain: true 
+    expire_after: 12h
+    filters:
+      - multiply: 18 #19.8
+
+  - platform: template
+    name: "Batterie"
+    unit_of_measurement: "%"
+    update_interval: never
+    id: pct_batterie
+    accuracy_decimals: 0
+    force_update: true
+    retain: true 
+    expire_after: 12h
+    lambda: |-
+      return 0;
+
+globals:
+  - id: total_mesures
+    type: float
+    initial_value: '0.0'
+  - id: nombre_mesures
+    type: int
+    initial_value: '0'
+
+script:
+  - id: do_measurements
+    mode: queued
+    then:
+      - repeat:
+          count: 1
+          then:
+            - component.update: niveau_eau
+            - delay: 800ms
+            - lambda: |-
+                float val = id(niveau_eau).state;
+                if (!isnan(val)) {
+                  id(total_mesures) += val;
+                  id(nombre_mesures) += 1;
+                }
+      - lambda: |-
+          const float hauteur_citerne = 2.0;   // hauteur utile (par exemple 2m)
+          if (id(nombre_mesures) > 0) {
+            float moyenne = id(total_mesures) / id(nombre_mesures);
+            id(niveau_eau_pub).publish_state(moyenne);
+
+            float hauteur_capteur = hauteur_citerne + 0.5; // capteur placé à 50 cm au-dessus
+            float niveau = hauteur_citerne - (moyenne - 0.5);
+            niveau = fmax(0.0, fmin(niveau, hauteur_citerne));  // clamp entre 0 et hauteur
+            float pct = (niveau / hauteur_citerne) * 100.0;
+            id(pct_eau_pub).publish_state(pct);
+
+            ESP_LOGI("water_level_sensor", "Distance moyenne: %.2f m -> Niveau: %.2f m (%.0f %%)", moyenne, niveau, pct);
+          } else {
+            ESP_LOGW("water_level_sensor", "Aucune mesure valide, rien ne sera envoyé");
+          }
+
+          id(total_mesures) = 0;
+          id(nombre_mesures) = 0;
+
+  - id: do_battery
+    mode: queued
+    then:
+      - component.update: tension_batterie
+      - delay: 500ms
+      - lambda: |-
+          float tension = id(tension_batterie).state;
+          ESP_LOGI("battery", "Tension batterie mesurée : %.2f V", tension);
+
+          float voltage = tension;
+          if (voltage > 4.2) voltage = 4.2;
+          if (voltage < 3.0) voltage = 3.0;
+          float percentage = (voltage - 3.0) * 100.0 / (4.2 - 3.0);
+
+          id(pct_batterie).publish_state(percentage);
+
+          ESP_LOGI("battery", "Pourcentage batterie mesuré : %.2f %%", percentage);
+        
+  - id: show_time_executed
+    mode: queued
+    then:
+      - lambda: |-
+          unsigned long uptime_ms = millis();
+          ESP_LOGI("battery", "Temps écoulé depuis le boot : %lu ms", uptime_ms);
+
+deep_sleep:
+  id: ds_control
+  sleep_duration: 15min
+  run_duration: 30s
