@@ -1,5 +1,3 @@
-# WemosD1-ESPHome-WaterLevelMonitor
-
 # 💧 Capteur de Niveau d'Eau – Wemos D1 + ESPHome
 
 Ce projet utilise un microcontrôleur Wemos D1 Mini avec ESPHome pour mesurer le niveau d'eau dans une cuve à l'aide d'un capteur à ultrasons, puis publier les données via MQTT vers Home Assistant.
