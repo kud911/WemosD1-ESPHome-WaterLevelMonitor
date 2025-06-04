@@ -5,9 +5,6 @@
 Ce projet utilise un microcontrôleur Wemos D1 Mini avec ESPHome pour mesurer le niveau d'eau dans une cuve à l'aide d'un capteur à ultrasons, puis publier les données via MQTT vers Home Assistant.
 
 ![Photo du boîtier](images/boitier_1.jpg)  
-![Photo du boîtier](images/boitier_2.jpg)  
-![Données transmises à Home Assistant](images/ha_1.jpg)
-
 ---
 
 ## 🧠 Objectif
@@ -18,6 +15,8 @@ L'objectif est de :
 - estimer l’état de la batterie,  
 - envoyer toutes ces données vers un serveur MQTT,  
 - économiser l’énergie grâce au mode **deep sleep** (une mesure toutes les 15 minutes).
+
+![Photo du boîtier](images/boitier_2.jpg)  
 
 ---
 
@@ -45,22 +44,22 @@ L'objectif est de :
 2. La connexion MQTT est établie.  
 3. Le capteur ultrason est alimenté.  
 4. Une mesure de distance et une mesure de batterie sont prises.  
-5. Les données sont envoyées via MQTT.  
-6. Le microcontrôleur entre en **sommeil profond** pour économiser la batterie.  
+5. Les données sont envoyées dans Home Assistant via MQTT Broker.
+   ![Données transmises à Home Assistant](images/ha_1.jpg)
+7. Le microcontrôleur entre en **sommeil profond** pour économiser la batterie.  
 
 ---
 
 ## 🗂 Structure du dépôt
 
 - `water_level_sensor.yaml` : fichier de configuration principal ESPHome.  
-- `secrets.yaml` : informations sensibles (Wi-Fi, MQTT) – **à ne pas versionner**.  
-- `.gitignore` : ignore les fichiers sensibles et temporaires (ex: `secrets.yaml`).
+- `secrets.yaml` : informations à configurer (Wi-Fi, MQTT).  
 
 ---
 
 ## 🔒 Sécurité
 
-Les identifiants Wi-Fi, mots de passe MQTT et adresses IP sont stockés dans `secrets.yaml` pour éviter leur diffusion dans le dépôt public, conformément aux bonnes pratiques ESPHome.
+Les identifiants Wi-Fi, mots de passe MQTT et adresses IP sont stockés dans `secrets.yaml` pour éviter leur diffusion dans le dépôt public, conformément aux bonnes pratiques.
 
 ---
 
