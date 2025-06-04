@@ -36,6 +36,8 @@ L'objectif est de :
 | 🧰 Fils + PCB                    | Pour câbler les composants (à souder ou sur breadboard)                        |
 | 🛠️ Logiciel                      | ESPHome, Home Assistant, broker MQTT                                          |
 
+![Schema PCB](images/schema.png)  
+
 ---
 
 ## 📡 Fonctionnement
