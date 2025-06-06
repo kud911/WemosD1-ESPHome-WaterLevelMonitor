@@ -69,7 +69,7 @@ wifi:
     gateway: !secret gateway_ip
     subnet: !secret subnet_mask
   fast_connect: false #true
-  power_save_mode: LIGHT #HIGH
+  power_save_mode: HIGH #LIGHT
   reboot_timeout: 0s
   enable_on_boot: false
 
@@ -87,8 +87,8 @@ mqtt:
 
 logger:
 
-ota:
-  platform: esphome
+#ota:
+#  platform: esphome
 
 output:
   - platform: gpio
@@ -139,7 +139,7 @@ sensor:
     retain: true 
     expire_after: 12h
     filters:
-      - multiply: 18 #19.8
+      - multiply: 22
 
   - platform: template
     name: "Batterie"
@@ -224,4 +224,4 @@ script:
 deep_sleep:
   id: ds_control
   sleep_duration: 15min
-  run_duration: 30s
+  run_duration: 25s
