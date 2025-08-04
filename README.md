@@ -1,4 +1,4 @@
-# 💧 Capteur de Niveau d'Eau avec batterie + peanneau solaire (Wemos D1 + ESPHome + AJ-SR04M)
+# 💧 Capteur de Niveau d'Eau avec batterie + panneau solaire (Wemos D1 + ESPHome + AJ-SR04M)
 
 Ce projet utilise un microcontrôleur Wemos D1 Mini avec ESPHome pour mesurer le niveau d'eau dans une cuve à l'aide d'un capteur à ultrasons, puis publier les données via MQTT vers Home Assistant.
 
